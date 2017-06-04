@@ -1,0 +1,63 @@
+﻿@model IEnumerable<Detalle.Models.CotizacionDetalles>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Cotizacion.Cliente)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ArticuloId)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Articulo)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Cantidad)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.PrecXund)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.SubTotal)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Cotizacion.Cliente)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ArticuloId)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Articulo)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Cantidad)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.PrecXund)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.SubTotal)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "Edit", new { id=item.CotizacionDetalleId }) |
+            @Html.ActionLink("Details", "Details", new { id=item.CotizacionDetalleId }) |
+            @Html.ActionLink("Delete", "Delete", new { id=item.CotizacionDetalleId })
+        </td>
+    </tr>
+}
+
+</table>
