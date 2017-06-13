@@ -3,6 +3,7 @@ using Detalle.Models;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
 
@@ -100,6 +101,6 @@ namespace Detalle.BLL
                 }
             }
             return listado;
-        }
+        }        
     }
 }

@@ -15,30 +15,27 @@
         <h4>Cotizaciones</h4>
         <hr />
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-        <div class="form-group">
-            <div class="col-md-10">
-                <label class="control-label">Cliente:</label>
-                <input class="form-control col-sm-5" type="text" id="tbCliente" />
+        <div class="form-group col-lg-12">
+            <div class="input-group">
+                <input class="form-control input-group-sm col-2" type="text" id="tbId" placeholder="Identificador" />
+                <button type="button" class="btn btn-sm btn-primary" id="btnBuscar" onclick="BuscarCotizacion()">Buscar</button>
             </div>
         </div>
-
-        <div class="form-group">
-            <label class="control-label col-1">Fecha:</label>
-            <div class="col-md-10">
-                <input type="text" class="datepicker col-4" id="dpFecha">
+        <div class="form-group col-lg-12">
+            <div class="input-group">
+                <input class="form-control col-sm-5" type="text" id="tbCliente" placeholder="Cliente" />
+                <span class="input-group-addon">-</span>
+                <input type="text" class="datepicker datepicker-dropdown col-3" id="dpFecha" placeholder="Fecha" />
             </div>
         </div>
-        <div class="form-group" size="100">
-            <div class="form-group col-12">
-                <label class="control-label">Articulo:</label>
-                <input class="form-control input-group-sm col-2" type="text" id="tbArticulo" />
-
-                <label class="control-label">Precio:</label>
-                <input class="form-control input-group-sm col-2" type="text" id="tbPrecio" />
-
-                <label class="control-label">Cantidad:</label>
-                <input class="form-control input-group-sm col-2" type="text" id="tbCantidad" />
-                <button type="button" class="btn btn-default" id="btnAgregar" onclick="AgregarDetalle()">Agregar</button>
+        <div class="form-group col-lg-12">
+            <div class="input-group">
+                <select class="form-control selected" id="ComboBox" onchange="Seleccionado()"></select>
+                <span class="input-group-addon">-</span>
+                <input class="form-control input-group-sm col-2" type="text" id="tbPrecio" readonly placeholder="Precio" />
+                <span class="input-group-addon">-</span>
+                <input class="form-control input-group-sm col-2" type="text" id="tbCantidad" placeholder="Cantidad" />
+                <button type="button" class="btn btn-outline-primary" id="btnAgregar" onclick="AgregarDetalle()">Agregar</button>
             </div>
         </div>
         <div class="table-responsive">
@@ -56,15 +53,17 @@
             </table>
         </div>
         <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <label class="control-label">Monto:</label>
-                <input class="form-control col-sm-5" type="text" id="tbMonto" value="0" />
+            <div class="input-group">
+                <span class="input-group-addon">Monto:</span>
+                <input class="form-control input-group-sm col-2" type="text" id="tbMonto" value="0" readonly />
             </div>
         </div>
-        <div class="form-group">
+        <div class="form-group text-center col-xl-12">
             <div class="col-md-offset-2 col-md-10">
-                <button type="button" class="btn btn-default" id="btnCrear" onclick="ArmarCotizacion()">Crear</button>
-                <button type="button" class="btn btn-default" id="btnLimpiar" onclick="LimpiarCampos()">Limpiar</button>
+                <button type="button" class="btn btn-outline-info col-sm-2" id="btnLimpiar" onclick="LimpiarCampos(1)">Nuevo</button>
+                <button type="button" class="btn btn-outline-success col-sm-2" id="btnCrear" onclick="EnviarDatos()">Crear</button>
+                <button type="button" class="btn btn-outline-warning col-sm-2" id="btnCrear" onclick="ModificarCotizacion()">Modificar</button>
+                <button type="button" class="btn btn-outline-danger col-sm-2" id="btnCrear" onclick="EliminarCotizacion()" >Eliminar</button>
             </div>
         </div>
     </div>
@@ -76,62 +75,93 @@
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
-    <script src="~/Scripts/bootstrap-datepicker.js"></script>
+    <script src="~/Scripts/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/moment.min.js"></script>
+    <script src="~/Scripts/moment-with-locales.min.js"></script>
     <script type="text/javascript">
+        $(document).ready(function () {
+            NetxCotizacion();
+            CargarArticulos();
+            Seleccionado();
+        })
         $(document).off('.datepicker.data-api');
         $('.datepicker').datepicker({
             format: 'dd/mm/yyyy',
             autoclose: true
         });
-        function ArmarDetalle(CotizacionId) {
-            var detalles = new Array();
 
-            $('#tbBody tr').each(function () {
-                var cotId = CotizacionId;
-                var artId = 1;
-                var art = $(this).find('td').eq(1).html();
-                var prec = $(this).find('td').eq(2).html();
-                var c = $(this).find('td').eq(3).html();
-                var st = $(this).find('td').eq(4).html();
-                detalles.push(
-                    {
-                        CotizacionDetalleId: 0,
-                        CotizacionId: cotId,
-                        ArticuloId: artId,
-                        Articulo: art,
-                        Cantidad: c,
-                        PrecXund: prec,
-                        SubTotal: st
-                    });
-            });
-            console.log(detalles);
-            EnviarDetalle(detalles);
-        }
-        function AgregarDetalle() {
-            var long = $("#tbBody tr").length;
+        var detalles = new Array();
+        var cotizacion = {};
 
+        function ArmarCotizacion() {
+            var id = $('#tbId').val();
+            var cli = $('#tbCliente').val();
+            var dstr = moment($('#dpFecha').val(), "DD/MM/YYYY hh:mm a");
+            
+            var date = new Date(dstr.toString());
             var monto = $('#tbMonto').val();
 
-            var articulo = $("#tbArticulo").val();
+            cotizacion = {
+                CotizacionId: id,
+                Cliente: cli,
+                Fecha: date,
+                Monto: monto
+            }
+        }
+        function EnviarDatos() {
+            ArmarCotizacion();
+            EnviarCotizacion(cotizacion);
+            EnviarDetalle(detalles);
+        }
+        function UpdateTable() {
+            $('#tbBody tr').remove();
+
+            $.each(detalles, function (i, detalle) {
+                var art = detalle.Articulo;
+                var prec = detalle.PrecXund;
+                var cant = detalle.Cantidad;
+                var subTt = detalle.SubTotal;
+
+                var fila = "<tr>";
+                fila += "<td>" + (i + 1) + "</td>";
+                fila += "<td>" + art + "</td>";
+                fila += "<td>" + prec + "</td>";
+                fila += "<td>" + cant + "</td>";
+                fila += "<td>" + subTt + "</td>";
+                fila += "</tr>";
+
+                $('#tbBody').append(fila);
+            });
+        }
+        function AgregarDetalle() {
+            var monto = $('#tbMonto').val();
+            var element = $('#ComboBox').find('option:selected');
+
+            var cotId = $('#tbId').val();
+            var articuloId = element.attr('id');
+            var articulo = element.text();
             var precio = $("#tbPrecio").val();
             var cantidad = $("#tbCantidad").val();
             var subTotal = precio * cantidad;
 
-            var fila = "<tr>";
-            fila += "<td>" + (long + 1) + "</td>";
-            fila += "<td>" + articulo + "</td>";
-            fila += "<td>" + precio + "</td>";
-            fila += "<td>" + cantidad + "</td>";
-            fila += "<td>" + subTotal + "</td>";
-            fila += "</tr>";
+            detalles.push(
+                {
+                    CotizacionDetalleId: 0,
+                    CotizacionId: cotId,
+                    ArticuloId: articuloId,
+                    Articulo: articulo,
+                    Cantidad: cantidad,
+                    PrecXund: precio,
+                    SubTotal: subTotal
+                });
 
             monto = parseFloat(subTotal) + parseFloat(monto);
-
-            $('#tDetalle tbody').append(fila);
 
             $('#tbMonto').val(monto);
 
             LimpiarCamposDetalle();
+
+            UpdateTable();
         }
         function EnviarDetalle(detail) {
             var pack = JSON.stringify(detail);
@@ -146,7 +176,7 @@
                         alert("No se pudo almacenar el detalle...");
                     }
                     else {
-                        LimpiarCampos();
+                        LimpiarCampos(1);
                     }
                 },
                 error: function (result) {
@@ -170,29 +200,166 @@
                 }
             });
         }
-        function ArmarCotizacion() {
-            var cli = $('#tbCliente').val();
-            var date = $('#dpFecha').val();
-            var monto = $('#tbMonto').val();
-            var cotizacion = {
-                CotizacionId: 0,
-                Cliente: cli,
-                Fecha: date,
-                Monto: monto
-            }
-            EnviarCotizacion(cotizacion);
-        }
         function LimpiarCamposDetalle() {
             $("#tbArticulo").val("");
             $("#tbPrecio").val("");
             $("#tbCantidad").val("");
+
+            $("#tbCantidad").focus();
         }
-        function LimpiarCampos() {
+        function LimpiarCampos(opc) {
+            $('#tbId').val("");
             $('#tbCliente').val("");
             $('#dpFecha').val("");
             $('#tbMonto').val("0");
             LimpiarCamposDetalle();
             $('#tbBody tr').remove();
+            if (opc == 1) {
+                NetxCotizacion();
+                detalles = new Array();
+                cotizacion = {};
+            }
+            $('#tbId').focus();
+        }
+
+        function NetxCotizacion() {
+            $.getJSON("/Cotizaciones/IdentityNetx", { Table: "Cotizaciones" }, function (data) {
+                $('#tbId').val(data);
+            })
+        }
+
+        function CargarArticulos() {
+            $.getJSON("/Articulos/Listado", { id: 1 }, function (listado) {
+                $.each(listado, function (index, articulo) {
+                    var option = "<option id='" + articulo.ArticuloId + "'value='" + articulo.Precio + "'>" + articulo.Descripcion + "</option>";
+                    $('#ComboBox').append(option);
+                });
+            });
+        }
+
+        function Seleccionado() {
+            var precio = $('#ComboBox').find('option:selected').attr('value');
+
+            $('#tbPrecio').val(precio);
+            $('#tbCantidad').focus();
+        }
+
+        function CargarCotizacion(cotizacion) {
+
+            var date = cotizacion.Fecha.split('(');
+            date = date[1].split(')', 1);
+
+            var fecha = new Date(parseInt(date[0]));
+
+            $('#tbId').val(cotizacion.CotizacionId);
+            $('#tbCliente').val(cotizacion.Cliente);
+            $('#dpFecha').val(fecha.toLocaleString());
+            $('#tbMonto').val(cotizacion.Monto);
+            BuscarDetalles(cotizacion.CotizacionId);
+        }
+        function CargarDetalles(Detalles) {
+            var cont = 1;
+            $.each(Detalles, function (i, detalle) {
+                var num = i + 1;
+                var Articulo = detalle.Articulo;
+                var Cant = detalle.Cantidad;
+                var Prec = detalle.PrecXund;
+                var SubTt = detalle.SubTotal;
+
+                var fila = "<tr>";
+                fila += "<td>" + num + "</td>";
+                fila += "<td>" + Articulo + "</td>";
+                fila += "<td>" + Cant + "</td>";
+                fila += "<td>" + Prec + "</td>";
+                fila += "<td>" + SubTt + "</td>";
+                fila += "</tr>";
+
+                $('#tbBody').append(fila);
+            });
+        }
+
+        function BuscarDetalles(CotizacionId) {
+            $.getJSON("/CotizacionDetalles/Listado", { cotizacionId: CotizacionId }, function (Detalles) {
+                if (Detalles !== 0) {
+                    detalles = Detalles;
+                    CargarDetalles(detalles);
+                }
+                else {
+                    alert("No se ha podido cargar el detalle de la Cotizacion...");
+                }
+            })
+        }
+        function BuscarCotizacion() {
+            var Identi = $('#tbId').val();
+            $.getJSON("/Cotizaciones/Buscar", { id: Identi }, function (Cotizacion) {
+                LimpiarCampos(0);
+                if (Cotizacion !== 0) {
+                    cotizacion = Cotizacion;
+                    CargarCotizacion(cotizacion);
+                }
+                else {
+                    alert("La cotizacion que ha intentado consultar no esta disponible");
+                }
+            })
+        }
+
+        function EliminarCotizacion()
+        {
+            ArmarCotizacion();
+            $.ajax({
+                type: "POST",
+                url: "/Cotizaciones/Eliminar",
+                contentType: "application/json; charset=utf-8",
+                data: "{cotizacion:" + JSON.stringify(cotizacion) + "}",
+                cache: false,
+                success: function (result) {
+                    if (result == 1) {
+                        alert("La cotizacion ha sido eliminada");
+                        LimpiarCampos(1);
+                    }
+                    else {
+                        alert("No se pudo procesar la accion solicitada");
+                    }
+                }
+            });
+        }
+
+        function ModificarDetalles(details) {
+            var pack = JSON.stringify(detalles);
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: pack,
+                cache: false,
+                url: "/CotizacionDetalles/Modificar",
+                success: function (result) {
+                    console.log(result);
+                    if (result == 1) {
+                        alert("La cotizacion ha sido modificada");
+                        LimpiarCampos(1);
+                    } else {
+                        alert("Ha fallado la modificacion del detalle");
+                    }
+                }
+            });
+        }
+        function ModificarCotizacion() {
+            ArmarCotizacion();
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Cotizaciones/Modificar",
+                data: "{cotizacion:" + JSON.stringify(cotizacion) + "}",
+                cache: false,
+                success: function (result) {
+                    if (result == 1) {
+                        ModificarDetalles(detalles);
+                    }
+                    else {
+                        alert("No se ha podido procesar la accion solicitada");
+                    }
+                }
+            });
         }
     </script>
 }

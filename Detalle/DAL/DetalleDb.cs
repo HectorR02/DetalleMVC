@@ -17,5 +17,9 @@ namespace Detalle.DAL
         public DbSet<Cotizaciones> Cotizacion { get; set; }
 
         public DbSet<CotizacionDetalles> DetalleCotizacion { get; set; }
+
+        public DbSet<Articulos> Articulo { get; set; }
+
+        public DbSet<Servicios> Servicio { get; set; }
     }
 }

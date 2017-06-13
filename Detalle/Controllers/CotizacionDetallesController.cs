@@ -60,12 +60,55 @@ namespace Detalle.Controllers
             return View(cotizacionDetalles);
         }
 
-        //[HttpPost]
+        [HttpPost]
         public JsonResult Guardar(List<CotizacionDetalles> detalles)
         {
             bool resultado = BLL.DetalleCotizacionesBLL.Guardar(detalles);
 
             return Json(resultado, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public JsonResult Listado(int? cotizacionId)
+        {
+            List<CotizacionDetalles> listado = BLL.DetalleCotizacionesBLL.Listar(cotizacionId);
+            if (listado != null)
+            {
+                return Json(listado, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                return Json(0, JsonRequestBehavior.DenyGet);
+            }
+        }
+
+        [HttpPost]
+        public JsonResult Eliminar(List<CotizacionDetalles> detalles)
+        {
+            var result = 0;
+            if (detalles.Count > 0)
+            {
+                if (BLL.DetalleCotizacionesBLL.Eliminar(detalles))
+                {
+                    result = 1;
+                }
+            }
+
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public JsonResult Modificar(List<CotizacionDetalles> detalles)
+        {
+            int result = 0;
+            if (detalles.Count > 0)
+            {
+                if (BLL.DetalleCotizacionesBLL.Modificar(detalles))
+                {
+                    result = 1;
+                }
+            }
+            return Json(result, JsonRequestBehavior.AllowGet);
         }
 
         // GET: CotizacionDetalles/Edit/5

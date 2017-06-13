@@ -58,21 +58,85 @@ namespace Detalle.Controllers
 
             return View(cotizaciones);
         }
-        
+
+        [HttpPost]
         public JsonResult Guardar(Cotizaciones cotizacion)
         {
             int id = 0;
             if (ModelState.IsValid)
             {
+                cotizacion.Fecha = DateTime.Now;
                 if (BLL.CotizacionesBLL.Guardar(cotizacion))
                 {
                     id = cotizacion.CotizacionId;
                 }
-            }else
+            }
+            else
             {
                 id = -1;
             }
             return Json(id, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public JsonResult Buscar(int? id)
+        {
+            Cotizaciones cotizacion = BLL.CotizacionesBLL.Buscar(id);
+            if (cotizacion != null)
+            {
+                return Json(cotizacion, JsonRequestBehavior.AllowGet);
+            }
+            else
+                return Json(0, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public JsonResult IdentityNetx(string Table)
+        {
+            int idNetx = BLL.GenericBLL.Identity(Table);
+
+            if (idNetx > 1 || BLL.CotizacionesBLL.Listar().Count > 0)
+                ++idNetx;
+
+            return Json(idNetx, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public JsonResult Modificar(Cotizaciones cotizacion)
+        {
+            var result = 0;
+            if (ModelState.IsValid)
+            {
+                if (BLL.CotizacionesBLL.Modificar(cotizacion))
+                {
+                    result = 1;
+                }
+            }
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public JsonResult Eliminar(Cotizaciones cotizacion)
+        {
+            int id = cotizacion.CotizacionId;
+            var cot = BLL.CotizacionesBLL.Buscar(id);
+            var result = 0;
+            if (cot != null)
+            {
+                if (BLL.CotizacionesBLL.Eliminar(cot))
+                {
+                    if (BLL.DetalleCotizacionesBLL.Eliminar(BLL.DetalleCotizacionesBLL.Listar(id)))
+                    {
+                        result = 1;
+                    }
+                }
+                else
+                    result = 0;
+            }
+            else
+                result = 0;
+
+            return Json(result, JsonRequestBehavior.AllowGet);
         }
 
         // GET: Cotizaciones/Edit/5

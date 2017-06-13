@@ -119,5 +119,70 @@ namespace Detalle.BLL
             }
             return resultado;
         }
+        public static List<CotizacionDetalles> Listar(int? cotizacionId)
+        {
+            List<CotizacionDetalles> listado = null;
+            using (var conexion = new DetalleDb())
+            {
+                try
+                {
+                    listado = conexion.DetalleCotizacion.Where(d => d.CotizacionId == cotizacionId).ToList();
+                }
+                catch (Exception)
+                {
+
+                    throw;
+                }
+            }
+            return listado;
+        }
+        public static bool Eliminar(List<CotizacionDetalles> detalles)
+        {
+            bool resultado = false;
+            try
+            {
+                foreach (CotizacionDetalles detalle in detalles)
+                {
+                    var detail = Buscar(detalle.CotizacionDetalleId);
+                    if (detail != null)
+                    {
+                        resultado = Eliminar(detail);
+                    }
+                    else
+                        continue;
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            return resultado;
+        }
+        public static bool Modificar(List<CotizacionDetalles> detalles)
+        {
+            bool resultado = false;
+            try
+            {
+                foreach (CotizacionDetalles detalle in detalles)
+                {
+                    var detail = Buscar(detalle.CotizacionDetalleId);
+                    if (detail != null)
+                    {
+                        resultado = Modificar(detalle);
+                    }
+                    else
+                    {
+                        resultado = Guardar(detalle);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            return resultado;
+        }
     }
 }

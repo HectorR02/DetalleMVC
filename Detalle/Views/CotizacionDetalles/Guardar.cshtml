@@ -1,0 +1,38 @@
+﻿
+@{
+    ViewBag.Title = "Guardar";
+}
+
+<h2>Guardar</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class='form-group'>
+        <p>First name: <input data-bind="value: firstName" /></p>
+        <p>Last name: <input data-bind="value: lastName" /></p>
+        <h2>Hello, <span data-bind="text: fullName"> </span>!</h2>
+    </div>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/knockout")
+    <script src="~/Scripts/knockout-3.4.2.js"></script>
+    <script>
+            var ViewModel = function (first, last) {
+                this.firstName = ko.observable(first)
+                this.lastName = ko.observable(last);
+                this.fullName = ko.computed(function () {
+                    return this.firstName() + " " + this.lastName();
+                }, this);
+            };
+
+            ko.applyBindings(new ViewModel("Planet", "Earth"));
+            // This makes Knockout get to work
+    </script>
+}
